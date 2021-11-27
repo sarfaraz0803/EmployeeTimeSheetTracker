@@ -13,20 +13,8 @@ data class Account(
     var username: String,
     @field:NotBlank
     var password: String,
-    var employee: Employee
+    var employee: Employee,
 
-
-    /*var dateOfJoining:String,
-    var dateOfResign:String,
-    var Attendance:Any,
-    var leaveDays:Int,
-    var totalWorkingDays:Int,
-    var officePerks:MutableList<Any>,
-    var compensations:MutableList<Any>,
-    var taskByManager:MutableList<Any>
-    var totalHoursForTask:Int
-    var performanceGraph:Any
-    */
-
+    //var otherSpecs:OtherSpecs
 
 )

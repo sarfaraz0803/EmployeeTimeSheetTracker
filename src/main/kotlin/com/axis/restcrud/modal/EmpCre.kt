@@ -1,13 +1,11 @@
 package com.axis.restcrud.modal
 
-
 import org.hibernate.validator.constraints.UniqueElements
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
-
-@Document("manager")
-data class ManagerAuth (
+@Document("employeeCredentials")
+data class EmpCre (
     @Id
     var _id: Int,
     @field:UniqueElements

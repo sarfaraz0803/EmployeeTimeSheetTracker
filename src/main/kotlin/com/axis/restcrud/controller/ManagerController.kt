@@ -2,10 +2,10 @@ package com.axis.restcrud.controller
 
 import com.axis.restcrud.exception.Warning
 import com.axis.restcrud.modal.Account
+import com.axis.restcrud.modal.EmpCre
 import com.axis.restcrud.modal.ManagerAuth
 import com.axis.restcrud.service.AccountServiceImpl
 import com.axis.restcrud.service.ManageServiceImpl
-import io.jsonwebtoken.Jwt
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +29,7 @@ class ManagerController {
     private lateinit var accountServiceImpl: AccountServiceImpl
     private val passwordEncoder = BCryptPasswordEncoder()
 
+    private lateinit var appSecret: String
 
     //These register, login, logout functions are for manager
 
@@ -43,15 +44,17 @@ class ManagerController {
         if(manLogin != null){
             if(passwordEncoder.matches(managerAuth.password,manLogin.password)){
 
-                val issuer = manLogin._id.toString()
+                val issuer = manLogin.username
+                appSecret = manLogin.username
                 val jwt = Jwts.builder()
                     .setIssuer(issuer)
-                    .setExpiration(Date(System.currentTimeMillis() + 60 * 1000 *24 ))
-                    .signWith(SignatureAlgorithm.ES512,"secret")
+                    .setExpiration(Date(System.currentTimeMillis() + 60 * 1000 * 24))   // 1 Day
+                    .signWith(SignatureAlgorithm.HS512, appSecret)
                     .compact()
 
-                val cookie = Cookie("jwt", jwt)
-                cookie.isHttpOnly=true
+                val cookie = Cookie("jwtManager", jwt)
+                cookie.isHttpOnly = true
+                //cookie.secure = true
 
                 response.addCookie(cookie)
 
@@ -60,31 +63,47 @@ class ManagerController {
                 throw Warning("Invalid Password")
             }
         }else{
-            return ResponseEntity("It is NULL",HttpStatus.BAD_REQUEST)
+            return ResponseEntity("Manager is NULL",HttpStatus.BAD_REQUEST)
         }
+        return ResponseEntity("Please Give Credentials",HttpStatus.BAD_REQUEST)
     }
 
     @GetMapping("/loggedManager")
-    fun loggedManager(@CookieValue("jwt") jwt:String? ):ResponseEntity<Any>{
+    fun loggedManager(@CookieValue("jwtManager") jwt:String? ):ResponseEntity<Any>{
         try{
             if(jwt == null){
-                return ResponseEntity("Unauthenticated",HttpStatus.UNAUTHORIZED)
+                return ResponseEntity("No logged Manager",HttpStatus.UNAUTHORIZED)
             }
-            val body = Jwts.parser().setSigningKey("secret").parseClaimsJws(jwt).body
-            return ResponseEntity(managerServiceImpl.getLoggedManager(body.issuer.toInt()),HttpStatus.OK)
+            val body = Jwts.parser().setSigningKey(appSecret).parseClaimsJws(jwt).body
+            return ResponseEntity(managerServiceImpl.getLoggedManager(body.issuer),HttpStatus.OK)
         }catch(e:Exception){
-            return ResponseEntity("Unauthorized",HttpStatus.UNAUTHORIZED)
+            return ResponseEntity(e,HttpStatus.UNAUTHORIZED)
         }
     }
 
     @PostMapping("/logout")
-    fun logOutManager(response: HttpServletResponse):ResponseEntity<Any>{
-        val cookie = Cookie("jwt", "")
-        cookie.maxAge = 0
-        response.addCookie(cookie)
-        return ResponseEntity("Successfully LoggedOut",HttpStatus.OK)
+    fun logOutManager(@CookieValue("jwtManager") jwt:String?, response: HttpServletResponse):ResponseEntity<Any>{
+        if(jwt != null){
+            val cookie = Cookie("jwtManager", jwt)
+            cookie.maxAge = 0
+            response.addCookie(cookie)
+        }else {
+            return ResponseEntity("LogIn first", HttpStatus.BAD_REQUEST)
+        }
+        return ResponseEntity("Successfully LoggedOut", HttpStatus.OK)
 
     }
+
+    @DeleteMapping("/deleteCredentials/{id}")
+    fun deleteCredentialDetails(@PathVariable id: Int):ResponseEntity<Any>{
+        return ResponseEntity(managerServiceImpl.deleteCredentialsDetails(id),HttpStatus.OK)
+    }
+
+    @PostMapping("/registerEmployee")
+    fun registerManager(@RequestBody empCre:EmpCre): ResponseEntity<EmpCre>{
+        return ResponseEntity(managerServiceImpl.registerEmployee(empCre),HttpStatus.OK)
+    }
+
 
 
 
@@ -97,13 +116,13 @@ class ManagerController {
 
     @PostMapping("/addAccount")
     fun addNewAccount(@Valid @RequestBody account: Account): ResponseEntity<Account>{
-        var acc = accountServiceImpl.addAccount(account)
+        val acc = accountServiceImpl.addAccount(account)
         return ResponseEntity(acc, HttpStatus.OK)
     }
 
     @GetMapping("/getAllAccounts")
     fun getAccounts(): ResponseEntity<MutableList<Account?>>{
-        var accList = accountServiceImpl.getAllAccount()
+        val accList = accountServiceImpl.getAllAccount()
         return ResponseEntity(accList, HttpStatus.OK)
     }
 
@@ -114,7 +133,7 @@ class ManagerController {
 
     @PutMapping("/updateAccountById/{id}")
     fun updateAccountById(@PathVariable id: Int, @Valid @RequestBody account: Account): ResponseEntity<Optional<Account?>> {
-        var upAcc = accountServiceImpl.updateAccountById(id,account)
+        val upAcc = accountServiceImpl.updateAccountById(id,account)
         return ResponseEntity(upAcc, HttpStatus.OK)
     }
 
