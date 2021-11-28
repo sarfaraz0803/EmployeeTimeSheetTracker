@@ -80,7 +80,7 @@ class AccountServiceImpl: IAccountService {
        if(iAccountDao.existsById(id)){
            iEmpCreDao.findById(id).map { oldCre ->
                val newCre = oldCre.copy(
-                   _id = oldCre._id,
+                   _id = id,
                    username = oldCre.username,
                    password = passwordEncoder.encode(account.password)
                )
@@ -130,4 +130,5 @@ class AccountServiceImpl: IAccountService {
     fun getLoggedEmployee(user:String): Account {
         return iAccountDao.findByUsername(user)
     }
+
 }

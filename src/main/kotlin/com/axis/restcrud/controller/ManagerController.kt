@@ -105,41 +105,77 @@ class ManagerController {
     }
 
 
-
-
-
-
-    // employeeAccount operations-------------------------------------
-
+    // employeeAccount operations--------------------------------------------------------------------------
     //These functions are available to the manager after successful login/authentication
 
 
     @PostMapping("/addAccount")
-    fun addNewAccount(@Valid @RequestBody account: Account): ResponseEntity<Account>{
-        val acc = accountServiceImpl.addAccount(account)
-        return ResponseEntity(acc, HttpStatus.OK)
+    fun addNewAccount(@CookieValue("jwtManager") jwt: String?, @Valid @RequestBody account: Account): ResponseEntity<Any>{
+        try {
+            if (jwt == null) {
+                return ResponseEntity("LogIn First", HttpStatus.BAD_REQUEST)
+            } else {
+                val acc = accountServiceImpl.addAccount(account)
+                return ResponseEntity(acc, HttpStatus.OK)
+            }
+        }catch (e:Exception){
+            return ResponseEntity(e.toString(),HttpStatus.BAD_REQUEST)
+        }
     }
 
     @GetMapping("/getAllAccounts")
-    fun getAccounts(): ResponseEntity<MutableList<Account?>>{
-        val accList = accountServiceImpl.getAllAccount()
-        return ResponseEntity(accList, HttpStatus.OK)
+    fun getAccounts(@CookieValue("jwtManager") jwt: String?): ResponseEntity<Any>{
+        try {
+            if (jwt == null) {
+                return ResponseEntity("LogIn First", HttpStatus.BAD_REQUEST)
+            } else {
+                val accList = accountServiceImpl.getAllAccount()
+                return ResponseEntity(accList, HttpStatus.OK)
+            }
+        }catch (e:Exception){
+            return ResponseEntity(e.toString(),HttpStatus.BAD_REQUEST)
+        }
     }
 
     @GetMapping("/getAccountById/{id}")
-    fun getAccountById(@PathVariable id:Int): ResponseEntity<Optional<Account?>> {
-        return ResponseEntity(accountServiceImpl.getAccountById(id), HttpStatus.OK)
+    fun getAccountById(@CookieValue("jwtManager") jwt: String?, @PathVariable id:Int): ResponseEntity<Any> {
+        try {
+            if (jwt == null) {
+                return ResponseEntity("LogIn First", HttpStatus.BAD_REQUEST)
+            } else {
+                return ResponseEntity(accountServiceImpl.getAccountById(id), HttpStatus.OK)
+            }
+        }catch (e:Exception){
+            return ResponseEntity(e.toString(),HttpStatus.BAD_REQUEST)
+        }
     }
 
     @PutMapping("/updateAccountById/{id}")
-    fun updateAccountById(@PathVariable id: Int, @Valid @RequestBody account: Account): ResponseEntity<Optional<Account?>> {
-        val upAcc = accountServiceImpl.updateAccountById(id,account)
-        return ResponseEntity(upAcc, HttpStatus.OK)
+    fun updateAccountById(@CookieValue("jwtManager") jwt: String?, @PathVariable id: Int, @Valid @RequestBody account: Account): ResponseEntity<Any> {
+        try {
+            if (jwt == null) {
+                return ResponseEntity("LogIn First", HttpStatus.BAD_REQUEST)
+            } else {
+                val upAcc = accountServiceImpl.updateAccountById(id,account)
+                return ResponseEntity(upAcc, HttpStatus.OK)
+            }
+        }catch (e:Exception){
+            return ResponseEntity(e.toString(),HttpStatus.BAD_REQUEST)
+        }
     }
 
     @DeleteMapping("/deleteAccountById/{id}")
-    fun deleteAccountById(@PathVariable id: Int): ResponseEntity<String>{
-        return ResponseEntity(accountServiceImpl.deleteAccountById(id), HttpStatus.OK)
+    fun deleteAccountById(@CookieValue("jwtManager") jwt: String?, @PathVariable id: Int): ResponseEntity<Any>{
+        try {
+            if (jwt == null) {
+                return ResponseEntity("LogIn First", HttpStatus.BAD_REQUEST)
+            } else {
+                return ResponseEntity(accountServiceImpl.deleteAccountById(id), HttpStatus.OK)
+            }
+        }catch (e:Exception) {
+            return ResponseEntity(e.toString(), HttpStatus.BAD_REQUEST)
+        }
     }
+
 
 }

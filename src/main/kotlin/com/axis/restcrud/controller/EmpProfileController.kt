@@ -33,10 +33,21 @@ class EmpProfileController {
 
 
 
-    @PutMapping("/updateAccountById/{id}")
-    fun updateAccountById(@PathVariable id: Int,@Valid @RequestBody account: Account): ResponseEntity<Optional<Account?>> {
-        var upAcc = accountServiceImpl.updateAccountById(id,account)
-        return ResponseEntity(upAcc, HttpStatus.OK)
+    @PutMapping("/updateAccount")
+    fun updateAccountById(@CookieValue("empCookie") jwtEmp:String?, @Valid @RequestBody account: Account): ResponseEntity<Any> {
+        try{
+            if(jwtEmp != null){
+                val body = Jwts.parser().setSigningKey(appSecret).parseClaimsJws(jwtEmp).body
+                val fetchedAcc = accountServiceImpl.getLoggedEmployee(body.issuer)
+                var upAcc = accountServiceImpl.updateAccountById(fetchedAcc._id, account)
+                return ResponseEntity(upAcc, HttpStatus.OK)
+            }else{
+                return ResponseEntity("LogIn First",HttpStatus.UNAUTHORIZED)
+            }
+        }catch(e:Exception){
+            return ResponseEntity(e.toString(),HttpStatus.UNAUTHORIZED)
+        }
+
     }
 
 
@@ -50,7 +61,7 @@ class EmpProfileController {
                 appSecret = empLog.username
                 val jwtEmp = Jwts.builder()
                     .setIssuer(issuer)
-                    .setExpiration(Date(System.currentTimeMillis() + 30 * 1000))   // 1 Day
+                    .setExpiration(Date(System.currentTimeMillis() + 60 * 60 * 1000))   //  1 hour
                     .signWith(SignatureAlgorithm.HS512, appSecret)
                     .compact()
 

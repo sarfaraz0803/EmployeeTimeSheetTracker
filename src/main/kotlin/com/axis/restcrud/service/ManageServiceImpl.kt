@@ -1,6 +1,5 @@
 package com.axis.restcrud.service
 
-import com.axis.restcrud.dao.IAccountDao
 import com.axis.restcrud.dao.IEmpCreDao
 import com.axis.restcrud.dao.IManagerDao
 import com.axis.restcrud.exception.Warning
@@ -9,7 +8,6 @@ import com.axis.restcrud.modal.ManagerAuth
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class ManageServiceImpl:IManagerService{
